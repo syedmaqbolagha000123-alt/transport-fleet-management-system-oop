@@ -26,12 +26,13 @@ main.cpp   → Main program entry point
 ## 🚗 Class Hierarchy
 
 Vehicle (Abstract Base Class)
+Vehicle
 ├── LandVehicle
-│   ├── Truck
-│   └── Van
+│ ├── Truck
+│ └── Van
 ├── AirVehicle
-│   ├── CargoPlane
-│   └── Helicopter
+│ ├── CargoPlane
+│ └── Helicopter
 
 Person (Abstract Base Class)
 └── Driver
