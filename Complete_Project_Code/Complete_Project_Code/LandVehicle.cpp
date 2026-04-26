@@ -8,7 +8,10 @@ LandVehicle::LandVehicle(string plate, string model, int year,
 
 LandVehicle::~LandVehicle() {}
 
-void LandVehicle::display() const {
+string LandVehicle::getPermit() const { return permitNo; }
+
+void LandVehicle::display() const
+{
     Vehicle::display();
     cout << "  Permit   : " << permitNo << "\n";
 }

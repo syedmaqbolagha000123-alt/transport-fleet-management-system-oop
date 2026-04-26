@@ -3,7 +3,8 @@
 
 #include "AirVehicle.h"
 
-class Helicopter : public AirVehicle {
+class Helicopter : public AirVehicle
+{
 private:
     bool hasWinch;
     double rotorDiameterM;
@@ -11,6 +12,8 @@ private:
 public:
     Helicopter(string, string, int, double, double, string, bool, double);
 
+    int getWinch() const;
+    double getRotor() const;
     double calcCost(double) const override;
     string getType() const override;
     void display() const override;

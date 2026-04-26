@@ -16,6 +16,10 @@ double CargoPlane::calcCost(double distanceKm) const
     return handlingFee + flightCost;
 }
 
+int CargoPlane::getEngines() const { return engineCount; }
+
+double CargoPlane::getRange() const { return rangeKm; }
+
 string CargoPlane::getType() const
 {
     return "Cargo Plane";

@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 #include <iostream>
 using namespace std;
@@ -98,9 +99,9 @@ void addVehicle(Vehicle **fleet, int &count, int maxSize)
     double cap;
 
     cout << "  Plate No.      : ";
-    getline(cin, plate);
+    cin >> plate;
     cout << "  Model          : ";
-    getline(cin, model);
+    cin >> model;
     cout << "  Year           : ";
     cin >> year;
     cout << "  Capacity (tons): ";
@@ -110,9 +111,8 @@ void addVehicle(Vehicle **fleet, int &count, int maxSize)
     {
         string permit;
         char heavy;
-        cin.ignore();
         cout << "  Permit No      : ";
-        getline(cin, permit);
+        cin >> permit;
         cout << "  Heavy truck? (y/n): ";
         cin >> heavy;
         fleet[count++] = new Truck(plate, model, year, cap, permit, (heavy == 'y' || heavy == 'Y'));
@@ -122,9 +122,8 @@ void addVehicle(Vehicle **fleet, int &count, int maxSize)
     {
         string permit;
         char fridge;
-        cin.ignore();
         cout << "  Permit No      : ";
-        getline(cin, permit);
+        cin >> permit;
         cout << "  Refrigerated? (y/n): ";
         cin >> fridge;
         fleet[count++] = new Van(plate, model, year, cap, permit, (fridge == 'y' || fridge == 'Y'));
@@ -135,9 +134,8 @@ void addVehicle(Vehicle **fleet, int &count, int maxSize)
         double altitude, range;
         int engines;
         string airport;
-        cin.ignore();
         cout << "  Home Airport   : ";
-        getline(cin, airport);
+        cin >> airport;
         cout << "  Altitude (ft)  : ";
         cin >> altitude;
         cout << "  No. of Engines : ";
@@ -152,9 +150,8 @@ void addVehicle(Vehicle **fleet, int &count, int maxSize)
         double altitude, rotorDiam;
         char winch;
         string airport;
-        cin.ignore();
         cout << "  Home Airport   : ";
-        getline(cin, airport);
+        cin >> airport;
         cout << "  Altitude (ft)  : ";
         cin >> altitude;
         cout << "  Rotor Diam (m) : ";
@@ -192,8 +189,7 @@ void searchVehicle(Vehicle **fleet, int count)
     {
         cout << "  Plate number: ";
         string plate;
-        cin.ignore();
-        getline(cin, plate);
+        cin >> plate;
         showVehicle(fleet, plate, count);
     }
     else
@@ -249,12 +245,11 @@ void addDriver(Driver **drivers, int &count, int maxSize)
     int age;
 
     cout << "  Name    : ";
-    getline(cin, name);
+    cin >> name;
     cout << "  Age     : ";
     cin >> age;
-    cin.ignore();
     cout << "  License : ";
-    getline(cin, license);
+    cin >> license;
 
     drivers[count++] = new Driver(name, age, license);
     cout << "  [OK] Driver added.\n";
@@ -362,11 +357,10 @@ void addRoute(Route **routes, int &count, int maxSize)
     string from, to;
     double dist;
 
-    cin.ignore();
     cout << "  From (city)   : ";
-    getline(cin, from);
+    cin >> from;
     cout << "  To   (city)   : ";
-    getline(cin, to);
+    cin >> to;
     cout << "  Distance (km) : ";
     cin >> dist;
 
@@ -508,14 +502,23 @@ void viewShipments(Shipment **shipments, int count)
 
 int main()
 {
+    // LOADING MAXIMUM CAPACITY FROM MAX.txt
     int v, d, r, s;
-    cout << "  ENTER MAXIMUM CAPACITY FOR FOLLOWING DATA:\n";
-    cout << "  1 -> VEHICLE FLEET,\n";
-    cout << "  2 -> DRIVERS,\n";
-    cout << "  3 -> ROUTES,\n";
-    cout << "  4 -> SHIPMENTS,\n";
-    cout << "  IN THAT ORDER:\n";
-    cin >> v >> d >> r >> s;
+    ifstream MAXFile("MAX.txt");
+    if (MAXFile.is_open())
+    {
+        MAXFile >> v >> d >> r >> s;
+        MAXFile.close();
+    }
+    else
+    {
+        cout << "MAX.txt NOT FOUND!\n";
+        // SETTING MAX VALUES TO 0:
+        v = 0;
+        d = 0;
+        r = 0;
+        s = 0;
+    }
 
     const int vMAX = v;
     const int dMAX = d;
@@ -530,32 +533,115 @@ int main()
     Route **routes = new Route *[rMAX];
     Shipment **shipments = new Shipment *[sMAX];
 
-    // SAMPLE DATA
-    fleet[vCount++] = new Truck("TRK-001", "Volvo-FH16", 2021, 25.0, "PERMIT-001", true);
-    fleet[vCount++] = new Van("VAN-001", "Toyota-Hiace", 2022, 2.5, "PERMIT-231", false);
-    fleet[vCount++] = new Van("VAN-002", "Daihatsu-Hijet", 2023, 0.5, "PERMIT-121", true);
-    fleet[vCount++] = new CargoPlane("PLN-001", "Boeing-747-400", 2007, 115.0, 40000.0, "Jinnah International Airport KHI", 4, 12000.0);
-    fleet[vCount++] = new Helicopter("HEL-001", "Mil-Mi-17", 1983, 3.8, 15000.0, "New Islamabad International Airport ISB", true, 21.29);
-    drivers[dCount++] = new Driver("Maqbool Ahmed", 25, "HTV-LHR-001");
-    drivers[dCount++] = new Driver("Mahboor Hussain", 28, "LTV-KHI-002");
-    drivers[dCount++] = new Driver("Muhammad Tayyar", 28, "AIR-ISB-003");
-    routes[rCount++] = new Route("Gwadar", "Khunjerab", 2500.0);
-    routes[rCount++] = new Route("Karachi", "Peshawar", 1547.0);
-    routes[rCount++] = new Route("Karachi", "Dubai", 1200.0);
+    // LOADING DATA:
+
+    // VEHICLES:
+    ifstream vFile("vehicles.txt");
+    if (vFile.is_open())
+    {
+        string tag;
+        while (vFile >> tag && vCount < vMAX)
+        {
+            string plate, model, permit, airport;
+            int year;
+            double cap;
+
+            if (tag == "TRUCK")
+            {
+                int isHeavy;
+                vFile >> plate >> model >> year >> cap >> permit >> isHeavy;
+                fleet[vCount++] = new Truck(plate, model, year, cap, permit, isHeavy == 1);
+            }
+            else if (tag == "VAN")
+            {
+                int isFridge;
+                vFile >> plate >> model >> year >> cap >> permit >> isFridge;
+                fleet[vCount++] = new Van(plate, model, year, cap, permit, isFridge == 1);
+            }
+            else if (tag == "PLANE")
+            {
+                double altitude, rangeKm;
+                int engines;
+                vFile >> plate >> model >> year >> cap >> altitude >> airport >> engines >> rangeKm;
+                fleet[vCount++] = new CargoPlane(plate, model, year, cap, altitude, airport, engines, rangeKm);
+            }
+            else if (tag == "HELI")
+            {
+                double altitude, rotorDiam;
+                int hasWinch;
+                vFile >> plate >> model >> year >> cap >> altitude >> airport >> hasWinch >> rotorDiam;
+                fleet[vCount++] = new Helicopter(plate, model, year, cap, altitude, airport, hasWinch == 1, rotorDiam);
+            }
+        }
+        vFile.close();
+    }
+    else
+    {
+        // LOADING SAMPLE DATA FOR FIRST TIME USE:
+        fleet[vCount++] = new Truck("TRK-001", "Volvo-FH16", 2021, 25.0, "PERMIT-001", true);
+        fleet[vCount++] = new Van("VAN-001", "Toyota-Hiace", 2022, 2.5, "PERMIT-231", false);
+        fleet[vCount++] = new Van("VAN-002", "Daihatsu-Hijet", 2023, 0.5, "PERMIT-121", true);
+        fleet[vCount++] = new CargoPlane("PLN-001", "Boeing-747-400", 2007, 115.0, 40000.0, "KHI", 4, 12000.0);
+        fleet[vCount++] = new Helicopter("HEL-001", "Mil-Mi-17", 1983, 3.8, 15000.0, "ISB", true, 21.29);
+    }
+
+    // DRIVERS:
+    ifstream dFile("drivers.txt");
+    if (dFile.is_open())
+    {
+        string name, license;
+        int age, onDuty;
+        while (dFile >> name >> age >> license >> onDuty && dCount < dMAX)
+        {
+            Driver *d = new Driver(name, age, license);
+            d->setOnDuty(onDuty == 1);
+            drivers[dCount++] = d;
+        }
+        dFile.close();
+    }
+    else
+    {
+        // LOADING SAMPLE DATA FOR FIRST TIME USE:
+        drivers[dCount++] = new Driver("Ali-Hassan", 35, "HTV-LHR-001");
+        drivers[dCount++] = new Driver("Sara-Ahmed", 30, "LTV-KHI-002");
+        drivers[dCount++] = new Driver("Zain-Malik", 28, "AIR-ISB-003");
+    }
+
+    // ROUTES:
+    ifstream rFile("routes.txt");
+
+    if (rFile.is_open())
+    {
+        string from, to;
+        double dist;
+        while (rFile >> from >> to >> dist && rCount < rMAX)
+        {
+            routes[rCount++] = new Route(from, to, dist);
+        }
+        rFile.close();
+        cout << "  [FILE] " << rCount << " route(s) loaded.\n";
+    }
+    else
+    {
+        // LOADING SAMPLE DATA FOR FIRST TIME USE
+        routes[rCount++] = new Route("Karachi", "Lahore", 1240.0);
+        routes[rCount++] = new Route("Islamabad", "Peshawar", 170.0);
+        routes[rCount++] = new Route("Karachi", "Dubai", 1600.0);
+    }
+
+    // MAIN PROGRAM:
 
     int choice, menu;
 
     do
     {
         system("cls");
-        cout << "\n  ========================================\n";
-        cout << "   FAST LOGISTICS - FLEET MANAGEMENT\n";
-        cout << "  ========================================\n";
+        printHeader("   FAST LOGISTICS - FLEET MANAGEMENT");
         cout << "  Vehicles: " << vCount
              << "  | Drivers: " << dCount
              << "  | Routes: " << rCount
              << "  | Shipments: " << sCount << "\n";
-        cout << "  ----------------------------------------\n";
+        printLine();
         cout << "  Select and Option:\n";
         cout << "  [1] Vehicles\n";
         cout << "  [2] Drivers\n";
@@ -718,6 +804,116 @@ int main()
             break;
         }
     } while (menu != 0);
+
+    // SAVING DATA TO FILES BEFORE CLOSING:
+
+    // VEHICLES:
+    ofstream vOut("vehicles.txt");
+    if (vOut.is_open())
+    {
+        for (int i = 0; i < vCount; i++)
+        {
+
+            Truck *t = dynamic_cast<Truck *>(fleet[i]);
+            if (t)
+            {
+                vOut << "TRUCK "
+                     << t->getPlate() << " "
+                     << t->getModel() << " "
+                     << t->getYear() << " "
+                     << t->getCapacity() << " "
+                     << t->getPermit() << " "
+                     << (t->getType() == "Heavy Truck" ? 1 : 0) << "\n";
+                continue;
+            }
+
+            Van *v = dynamic_cast<Van *>(fleet[i]);
+            if (v)
+            {
+                vOut << "VAN "
+                     << v->getPlate() << " "
+                     << v->getModel() << " "
+                     << v->getYear() << " "
+                     << v->getCapacity() << " "
+                     << v->getPermit() << " "
+                     << (v->getType() == "Refrigerated Van" ? 1 : 0) << "\n";
+                continue;
+            }
+
+            CargoPlane *p = dynamic_cast<CargoPlane *>(fleet[i]);
+            if (p)
+            {
+                vOut << "PLANE "
+                     << p->getPlate() << " "
+                     << p->getModel() << " "
+                     << p->getYear() << " "
+                     << p->getCapacity() << " "
+                     << p->getAltitude() << " "
+                     << p->getAirport() << " "
+                     << p->getEngines() << " "
+                     << p->getRange() << "\n";
+                continue;
+            }
+
+            Helicopter *h = dynamic_cast<Helicopter *>(fleet[i]);
+            if (h)
+            {
+                vOut << "HELI "
+                     << h->getPlate() << " "
+                     << h->getModel() << " "
+                     << h->getYear() << " "
+                     << h->getCapacity() << " "
+                     << h->getAltitude() << " "
+                     << h->getAirport() << " "
+                     << h->getWinch() << " "
+                     << h->getRotor() << "\n";
+                continue;
+            }
+        }
+        vOut.close();
+        cout << "  " << vCount << " vehicle(s) saved to vehicles.txt\n";
+    }
+    else
+    {
+        cout << "  ERROR: Could not write to vehicles.txt\n";
+    }
+
+    // DRIVERS:
+    ofstream dOut("drivers.txt");
+    if (dOut.is_open())
+    {
+        for (int i = 0; i < dCount; i++)
+        {
+            dOut << drivers[i]->getName() << " "
+                 << drivers[i]->getAge() << " "
+                 << drivers[i]->getLicense() << " "
+                 << (drivers[i]->isOnDuty() ? 1 : 0) << "\n";
+        }
+        dOut.close();
+        cout << "  " << dCount << " driver(s) saved to drivers.txt\n";
+    }
+    else
+    {
+        cout << "  ERROR: Could not write to drivers.txt\n";
+    }
+
+    // ROUTES:
+    ofstream rOut("routes.txt");
+    if (rOut.is_open())
+    {
+        for (int i = 0; i < rCount; i++)
+        {
+            rOut << routes[i]->getFrom() << " "
+                 << routes[i]->getTo() << " "
+                 << routes[i]->getDistance() << "\n";
+        }
+        rOut.close();
+        cout << "  " << rCount << " route(s) saved to routes.txt\n";
+    }
+    else
+    {
+        cout << "  ERROR: Could not write to routes.txt\n";
+    }
 
     // DMA CLEANUP
     for (int i = 0; i < vCount; i++)

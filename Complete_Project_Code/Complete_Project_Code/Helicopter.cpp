@@ -9,6 +9,10 @@ Helicopter::Helicopter(string plate, string model, int year,
     : AirVehicle(plate, model, year, cap, altitude, airport),
       hasWinch(winch), rotorDiameterM(rotorDiam) {}
 
+int Helicopter::getWinch() const { return hasWinch ? 1 : 0; }
+
+double Helicopter::getRotor() const { return rotorDiameterM; }
+
 double Helicopter::calcCost(double distanceKm) const
 {
     double flightCost = distanceKm * capacityTons * 20;
